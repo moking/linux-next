@@ -1994,13 +1994,11 @@ static inline bool folio_has_pincount(const struct folio *folio)
 	return folio_order(folio) > 1;
 }
 
-#ifndef mk_pte
 #ifdef CONFIG_MMU
 static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
 {
 	return pfn_pte(page_to_pfn(page), pgprot);
 }
-#endif
 #endif
 
 /**

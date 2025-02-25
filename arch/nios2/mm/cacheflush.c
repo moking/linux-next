@@ -234,7 +234,7 @@ void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
 	if (mapping) {
 		flush_aliases(mapping, folio);
 		if (vma->vm_flags & VM_EXEC)
-			flush_icache_pages(vma, &folio->page,
+			flush_icache_pages(vma, folio_page(folio, 0),
 					folio_nr_pages(folio));
 	}
 }

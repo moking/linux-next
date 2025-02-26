@@ -471,7 +471,7 @@ static int io_ctl_prepare_pages(struct btrfs_io_ctl *io_ctl, bool uptodate)
 			return ret;
 		}
 
-		io_ctl->pages[i] = &folio->page;
+		io_ctl->pages[i] = folio_page(folio, 0);
 		if (uptodate && !folio_test_uptodate(folio)) {
 			btrfs_read_folio(NULL, folio);
 			folio_lock(folio);

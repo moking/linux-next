@@ -1164,6 +1164,14 @@ static inline struct dev_pagemap *page_pgmap(const struct page *page)
 	return page_folio(page)->pgmap;
 }
 
+static inline struct dev_pagemap *folio_pgmap(const struct folio *folio)
+{
+	const struct page *page = &folio->page;
+
+	VM_WARN_ON_ONCE_PAGE(!is_zone_device_page(page), page);
+	return folio->pgmap;
+}
+
 /*
  * Consecutive zone device pages should not be merged into the same sgl
  * or bvec segment with other types of pages or if they belong to different

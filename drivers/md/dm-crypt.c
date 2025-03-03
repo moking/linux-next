@@ -1763,7 +1763,7 @@ static void crypt_free_buffer_pages(struct crypt_config *cc, struct bio *clone)
 						1 << folio_order(fi.folio));
 				folio_put(fi.folio);
 			} else {
-				mempool_free(&fi.folio->page, &cc->page_pool);
+				mempool_free(folio_page(fi.folio, 0), &cc->page_pool);
 			}
 		}
 	}

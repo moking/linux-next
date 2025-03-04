@@ -703,7 +703,7 @@ static pageout_t pageout(struct folio *folio, struct address_space *mapping,
 			wbc.list = folio_list;
 
 		folio_set_reclaim(folio);
-		res = mapping->a_ops->writepage(&folio->page, &wbc);
+		res = mapping->a_ops->writepage(folio_page(folio, 0), &wbc);
 		if (res < 0)
 			handle_write_error(mapping, folio, res);
 		if (res == AOP_WRITEPAGE_ACTIVATE) {

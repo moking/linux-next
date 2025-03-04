@@ -156,7 +156,7 @@ static void filemap_unaccount_folio(struct address_space *mapping,
 	if (!IS_ENABLED(CONFIG_DEBUG_VM) && unlikely(folio_mapped(folio))) {
 		pr_alert("BUG: Bad page cache in process %s  pfn:%05lx\n",
 			 current->comm, folio_pfn(folio));
-		dump_page(&folio->page, "still mapped when deleted");
+		dump_page(folio_page(folio, 0), "still mapped when deleted");
 		dump_stack();
 		add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
 
@@ -3736,7 +3736,7 @@ static vm_fault_t filemap_map_order0_folio(struct vm_fault *vmf,
 		unsigned long *rss, unsigned int *mmap_miss)
 {
 	vm_fault_t ret = 0;
-	struct page *page = &folio->page;
+	struct page *page = folio_page(folio, 0);
 
 	if (PageHWPoison(page))
 		return ret;
@@ -4026,7 +4026,7 @@ static struct page *do_read_cache_page(struct address_space *mapping,
 
 	folio = do_read_cache_folio(mapping, index, filler, file, gfp);
 	if (IS_ERR(folio))
-		return &folio->page;
+		return folio_page(folio, 0);
 	return folio_file_page(folio, index);
 }
 

@@ -2782,14 +2782,14 @@ void free_unref_folios(struct folio_batch *folios)
 		unsigned long pfn = folio_pfn(folio);
 		unsigned int order = folio_order(folio);
 
-		if (!free_pages_prepare(&folio->page, order))
+		if (!free_pages_prepare(folio_page(folio, 0), order))
 			continue;
 		/*
 		 * Free orders not handled on the PCP directly to the
 		 * allocator.
 		 */
 		if (!pcp_allowed_order(order)) {
-			free_one_page(folio_zone(folio), &folio->page,
+			free_one_page(folio_zone(folio), folio_page(folio, 0),
 				      pfn, order, FPI_NONE);
 			continue;
 		}
@@ -2808,7 +2808,7 @@ void free_unref_folios(struct folio_batch *folios)
 		int migratetype;
 
 		folio->private = NULL;
-		migratetype = get_pfnblock_migratetype(&folio->page, pfn);
+		migratetype = get_pfnblock_migratetype(folio_page(folio, 0), pfn);
 
 		/* Different zone requires a different pcp lock */
 		if (zone != locked_zone ||
@@ -2825,7 +2825,7 @@ void free_unref_folios(struct folio_batch *folios)
 			 * allocator, see comment in free_frozen_pages.
 			 */
 			if (is_migrate_isolate(migratetype)) {
-				free_one_page(zone, &folio->page, pfn,
+				free_one_page(zone, folio_page(folio, 0), pfn,
 					      order, FPI_NONE);
 				continue;
 			}
@@ -2838,7 +2838,7 @@ void free_unref_folios(struct folio_batch *folios)
 			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
 			if (unlikely(!pcp)) {
 				pcp_trylock_finish(UP_flags);
-				free_one_page(zone, &folio->page, pfn,
+				free_one_page(zone, folio_page(folio, 0), pfn,
 					      order, FPI_NONE);
 				continue;
 			}
@@ -2852,8 +2852,8 @@ void free_unref_folios(struct folio_batch *folios)
 		if (unlikely(migratetype >= MIGRATE_PCPTYPES))
 			migratetype = MIGRATE_MOVABLE;
 
-		trace_mm_page_free_batched(&folio->page);
-		free_frozen_page_commit(zone, pcp, &folio->page, migratetype,
+		trace_mm_page_free_batched(folio_page(folio, 0));
+		free_frozen_page_commit(zone, pcp, folio_page(folio, 0), migratetype,
 				order);
 	}
 

@@ -96,7 +96,7 @@ bool isolate_movable_page(struct page *page, isolate_mode_t mode)
 	mops = folio_movable_ops(folio);
 	VM_BUG_ON_FOLIO(!mops, folio);
 
-	if (!mops->isolate_page(&folio->page, mode))
+	if (!mops->isolate_page(folio_page(folio, 0), mode))
 		goto out_no_isolated;
 
 	/* Driver shouldn't use the isolated flag */
@@ -118,7 +118,7 @@ static void putback_movable_folio(struct folio *folio)
 {
 	const struct movable_operations *mops = folio_movable_ops(folio);
 
-	mops->putback_page(&folio->page);
+	mops->putback_page(folio_page(folio, 0));
 	folio_clear_isolated(folio);
 }
 
@@ -175,7 +175,7 @@ bool isolate_folio_to_list(struct folio *folio, struct list_head *list)
 	if (lru)
 		isolated = folio_isolate_lru(folio);
 	else
-		isolated = isolate_movable_page(&folio->page,
+		isolated = isolate_movable_page(folio_page(folio, 0),
 						ISOLATE_UNEVICTABLE);
 
 	if (!isolated)
@@ -978,7 +978,7 @@ static int writeout(struct address_space *mapping, struct folio *folio)
 	 */
 	remove_migration_ptes(folio, folio, 0);
 
-	rc = mapping->a_ops->writepage(&folio->page, &wbc);
+	rc = mapping->a_ops->writepage(folio_page(folio, 0), &wbc);
 
 	if (rc != AOP_WRITEPAGE_ACTIVATE)
 		/* unlocked. Relock */

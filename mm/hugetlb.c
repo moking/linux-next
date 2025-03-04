@@ -1302,7 +1302,7 @@ static struct folio *dequeue_hugetlb_folio_node_exact(struct hstate *h,
 		if (folio_test_hwpoison(folio))
 			continue;
 
-		if (is_migrate_isolate_page(&folio->page))
+		if (is_migrate_isolate_page(folio_page(folio, 0)))
 			continue;
 
 		list_move(&folio->lru, &h->hugepage_activelist);
@@ -1837,7 +1837,7 @@ void free_huge_folio(struct folio *folio)
 
 	hugetlb_set_folio_subpool(folio, NULL);
 	if (folio_test_anon(folio))
-		__ClearPageAnonExclusive(&folio->page);
+		__ClearPageAnonExclusive(folio_page(folio, 0));
 	folio->mapping = NULL;
 	restore_reserve = folio_test_hugetlb_restore_reserve(folio);
 	folio_clear_hugetlb_restore_reserve(folio);
@@ -3996,7 +3996,7 @@ static long demote_free_hugetlb_folios(struct hstate *src, struct hstate *dst,
 
 		list_del(&folio->lru);
 
-		split_page_owner(&folio->page, huge_page_order(src), huge_page_order(dst));
+		split_page_owner(folio_page(folio, 0), huge_page_order(src), huge_page_order(dst));
 		pgalloc_tag_split(folio, huge_page_order(src), huge_page_order(dst));
 
 		for (i = 0; i < pages_per_huge_page(src); i += pages_per_huge_page(dst)) {
@@ -5458,7 +5458,7 @@ static void
 hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
 		      struct folio *new_folio, pte_t old, unsigned long sz)
 {
-	pte_t newpte = make_huge_pte(vma, &new_folio->page, true);
+	pte_t newpte = make_huge_pte(vma, folio_page(new_folio, 0), true);
 
 	__folio_mark_uptodate(new_folio);
 	hugetlb_add_new_anon_rmap(new_folio, vma, addr);
@@ -6096,9 +6096,9 @@ retry_avoidcopy:
 	 * be leaks between processes, for example, with FOLL_GET users.
 	 */
 	if (folio_mapcount(old_folio) == 1 && folio_test_anon(old_folio)) {
-		if (!PageAnonExclusive(&old_folio->page)) {
+		if (!PageAnonExclusive(folio_page(old_folio, 0))) {
 			folio_move_anon_rmap(old_folio, vma);
-			SetPageAnonExclusive(&old_folio->page);
+			SetPageAnonExclusive(folio_page(old_folio, 0));
 		}
 		if (likely(!unshare))
 			set_huge_ptep_maybe_writable(vma, vmf->address,
@@ -6108,7 +6108,7 @@ retry_avoidcopy:
 		return 0;
 	}
 	VM_BUG_ON_PAGE(folio_test_anon(old_folio) &&
-		       PageAnonExclusive(&old_folio->page), &old_folio->page);
+			PageAnonExclusive(folio_page(old_folio, 0)), folio_page(folio, 0));
 
 	/*
 	 * If the process that created a MAP_PRIVATE mapping is about to
@@ -6160,7 +6160,7 @@ retry_avoidcopy:
 			hugetlb_vma_unlock_read(vma);
 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
 
-			unmap_ref_private(mm, vma, &old_folio->page,
+			unmap_ref_private(mm, vma, folio_page(old_folio, 0),
 					vmf->address);
 
 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
@@ -6208,7 +6208,7 @@ retry_avoidcopy:
 	spin_lock(vmf->ptl);
 	vmf->pte = hugetlb_walk(vma, vmf->address, huge_page_size(h));
 	if (likely(vmf->pte && pte_same(huge_ptep_get(mm, vmf->address, vmf->pte), pte))) {
-		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
+		pte_t newpte = make_huge_pte(vma, folio_page(new_folio, 0), !unshare);
 
 		/* Break COW or unshare */
 		huge_ptep_clear_flush(vma, vmf->address, vmf->pte);
@@ -6488,7 +6488,7 @@ static vm_fault_t hugetlb_no_page(struct address_space *mapping,
 		hugetlb_add_new_anon_rmap(folio, vma, vmf->address);
 	else
 		hugetlb_add_file_rmap(folio);
-	new_pte = make_huge_pte(vma, &folio->page, vma->vm_flags & VM_SHARED);
+	new_pte = make_huge_pte(vma, folio_page(folio, 0), vma->vm_flags & VM_SHARED);
 	/*
 	 * If this pte was previously wr-protected, keep it wr-protected even
 	 * if populated.
@@ -6973,7 +6973,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
 	 * with wp flag set, don't set pte write bit.
 	 */
-	_dst_pte = make_huge_pte(dst_vma, &folio->page,
+	_dst_pte = make_huge_pte(dst_vma, folio_page(folio, 0),
 				 !wp_enabled && !(is_continue && !vm_shared));
 	/*
 	 * Always mark UFFDIO_COPY page dirty; note that this may not be
@@ -7743,7 +7743,7 @@ void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int re
 	struct hstate *h = folio_hstate(old_folio);
 
 	hugetlb_cgroup_migrate(old_folio, new_folio);
-	set_page_owner_migrate_reason(&new_folio->page, reason);
+	set_page_owner_migrate_reason(folio_page(new_folio, 0), reason);
 
 	/*
 	 * transfer temporary state of the new hugetlb folio. This is

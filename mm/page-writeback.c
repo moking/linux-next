@@ -2661,7 +2661,7 @@ static int writeback_use_writepage(struct address_space *mapping,
 
 	blk_start_plug(&plug);
 	while ((folio = writeback_iter(mapping, wbc, folio, &err))) {
-		err = mapping->a_ops->writepage(&folio->page, wbc);
+		err = mapping->a_ops->writepage(folio_page(folio, 0), wbc);
 		if (err == AOP_WRITEPAGE_ACTIVATE) {
 			folio_unlock(folio);
 			err = 0;

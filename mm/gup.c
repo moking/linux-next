@@ -63,10 +63,10 @@ static inline void sanity_check_pinned_pages(struct page **pages,
 		    !folio_test_anon(folio))
 			continue;
 		if (!folio_test_large(folio) || folio_test_hugetlb(folio))
-			VM_BUG_ON_PAGE(!PageAnonExclusive(&folio->page), page);
+			VM_BUG_ON_PAGE(!PageAnonExclusive(folio_page(folio, 0)), page);
 		else
 			/* Either a PTE-mapped or a PMD-mapped THP. */
-			VM_BUG_ON_PAGE(!PageAnonExclusive(&folio->page) &&
+			VM_BUG_ON_PAGE(!PageAnonExclusive(folio_page(folio, 0)) &&
 				       !PageAnonExclusive(page), page);
 	}
 }
@@ -147,7 +147,8 @@ int __must_check try_grab_folio(struct folio *folio, int refs,
 	if (WARN_ON_ONCE(folio_ref_count(folio) <= 0))
 		return -ENOMEM;
 
-	if (unlikely(!(flags & FOLL_PCI_P2PDMA) && is_pci_p2pdma_page(&folio->page)))
+	if (unlikely(!(flags & FOLL_PCI_P2PDMA) &&
+				is_pci_p2pdma_page(folio_page(folio, 0))))
 		return -EREMOTEIO;
 
 	if (flags & FOLL_GET)
@@ -3115,7 +3116,7 @@ static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
 		gup_put_folio(folio, refs, flags);
 		return 0;
 	}
-	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, folio_page(folio, 0))) {
 		gup_put_folio(folio, refs, flags);
 		return 0;
 	}
@@ -3163,7 +3164,7 @@ static int gup_fast_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
 		return 0;
 	}
 
-	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+	if (!pud_write(orig) && gup_must_unshare(NULL, flags, folio_page(folio, 0))) {
 		gup_put_folio(folio, refs, flags);
 		return 0;
 	}
@@ -3198,7 +3199,7 @@ static int gup_fast_pgd_leaf(pgd_t orig, pgd_t *pgdp, unsigned long addr,
 		return 0;
 	}
 
-	if (!pgd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+	if (!pgd_write(orig) && gup_must_unshare(NULL, flags, folio_page(folio, 0))) {
 		gup_put_folio(folio, refs, flags);
 		return 0;
 	}

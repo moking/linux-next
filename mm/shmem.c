@@ -1657,7 +1657,7 @@ try_split:
 
 		mutex_unlock(&shmem_swaplist_mutex);
 		BUG_ON(folio_mapped(folio));
-		return swap_writepage(&folio->page, wbc);
+		return swap_writepage(folio_page(folio, 0), wbc);
 	}
 
 	mutex_unlock(&shmem_swaplist_mutex);
@@ -3195,7 +3195,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pmd,
 
 			flush_dcache_folio(folio);
 		} else {		/* ZEROPAGE */
-			clear_user_highpage(&folio->page, dst_addr);
+			clear_user_highpage(folio_page(folio, 0), dst_addr);
 		}
 	} else {
 		folio = *foliop;
@@ -3222,7 +3222,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pmd,
 		goto out_release;
 
 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
-				       &folio->page, true, flags);
+				       folio_page(folio, 0), true, flags);
 	if (ret)
 		goto out_delete_from_cache;
 
@@ -5928,7 +5928,7 @@ struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
 	struct page *page;
 
 	if (IS_ERR(folio))
-		return &folio->page;
+		return folio_page(folio, 0);
 
 	page = folio_file_page(folio, index);
 	if (PageHWPoison(page)) {

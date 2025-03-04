@@ -1605,7 +1605,7 @@ static void z_erofs_endio(struct bio *bio)
 		struct folio *folio = fi.folio;
 
 		DBG_BUGON(folio_test_uptodate(folio));
-		DBG_BUGON(z_erofs_page_is_invalidated(&folio->page));
+		DBG_BUGON(z_erofs_page_is_invalidated(folio_page(folio, 0)));
 		if (!erofs_folio_is_managed(EROFS_SB(q->sb), folio))
 			continue;
 

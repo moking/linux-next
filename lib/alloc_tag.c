@@ -174,7 +174,7 @@ void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
 	if (!mem_alloc_profiling_enabled())
 		return;
 
-	tag = __pgalloc_tag_get(&folio->page);
+	tag = __pgalloc_tag_get(folio_page(folio, 0));
 	if (!tag)
 		return;
 

@@ -22,7 +22,7 @@
 int squashfs_readpage_block(struct folio *folio, u64 block, int bsize,
 		int expected)
 {
-	struct page *target_page = &folio->page;
+	struct page *target_page = folio_page(folio, 0);
 	struct inode *inode = folio->mapping->host;
 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
 	loff_t file_end = (i_size_read(inode) - 1) >> PAGE_SHIFT;

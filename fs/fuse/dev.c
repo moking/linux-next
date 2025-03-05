@@ -832,7 +832,7 @@ static int fuse_check_folio(struct folio *folio)
 	       1 << PG_reclaim |
 	       1 << PG_waiters |
 	       LRU_GEN_MASK | LRU_REFS_MASK))) {
-		dump_page(&folio->page, "fuse: trying to steal weird page");
+		dump_page(folio_page(folio, 0), "fuse: trying to steal weird page");
 		return 1;
 	}
 	return 0;
@@ -914,7 +914,7 @@ static int fuse_try_move_page(struct fuse_copy_state *cs, struct page **pagep)
 	if (test_bit(FR_ABORTED, &cs->req->flags))
 		err = -ENOENT;
 	else
-		*pagep = &newfolio->page;
+		*pagep = folio_page(newfolio, 0);
 	spin_unlock(&cs->req->waitq.lock);
 
 	if (err) {
@@ -1681,7 +1681,7 @@ static int fuse_notify_store(struct fuse_conn *fc, unsigned int size,
 		if (IS_ERR(folio))
 			goto out_iput;
 
-		page = &folio->page;
+		page = folio_page(folio, 0);
 		this_num = min_t(unsigned, num, folio_size(folio) - offset);
 		err = fuse_copy_page(cs, &page, offset, this_num, 0);
 		if (!folio_test_uptodate(folio) && !err && offset == 0 &&

@@ -339,7 +339,7 @@ static int zisofs_read_folio(struct file *file, struct folio *folio)
 		folio_unlock(folio);
 		return -ENOMEM;
 	}
-	pages[full_page] = &folio->page;
+	pages[full_page] = folio_page(folio, 0);
 
 	for (i = 0; i < pcount; i++, index++) {
 		if (i != full_page)

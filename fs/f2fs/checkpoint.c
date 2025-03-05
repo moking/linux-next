@@ -463,13 +463,13 @@ continue_unlock:
 				goto continue_unlock;
 			}
 
-			f2fs_wait_on_page_writeback(&folio->page, META,
+			f2fs_wait_on_page_writeback(folio_page(folio, 0), META,
 					true, true);
 
 			if (!folio_clear_dirty_for_io(folio))
 				goto continue_unlock;
 
-			if (__f2fs_write_meta_page(&folio->page, &wbc,
+			if (__f2fs_write_meta_page(folio_page(folio, 0), &wbc,
 						io_type)) {
 				folio_unlock(folio);
 				break;
@@ -500,7 +500,7 @@ static bool f2fs_dirty_meta_folio(struct address_space *mapping,
 		folio_mark_uptodate(folio);
 	if (filemap_dirty_folio(mapping, folio)) {
 		inc_page_count(F2FS_M_SB(mapping), F2FS_DIRTY_META);
-		set_page_private_reference(&folio->page);
+		set_page_private_reference(folio_page(folio, 0));
 		return true;
 	}
 	return false;
@@ -1061,7 +1061,7 @@ void f2fs_update_dirty_folio(struct inode *inode, struct folio *folio)
 	inode_inc_dirty_pages(inode);
 	spin_unlock(&sbi->inode_lock[type]);
 
-	set_page_private_reference(&folio->page);
+	set_page_private_reference(folio_page(folio, 0));
 }
 
 void f2fs_remove_dirty_inode(struct inode *inode)

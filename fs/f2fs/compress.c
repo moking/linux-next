@@ -2009,7 +2009,7 @@ void f2fs_invalidate_compress_pages(struct f2fs_sb_info *sbi, nid_t ino)
 				continue;
 			}
 
-			if (ino != get_page_private_data(&folio->page)) {
+			if (ino != get_page_private_data(folio_page(folio, 0))) {
 				folio_unlock(folio);
 				continue;
 			}

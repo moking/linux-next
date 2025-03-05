@@ -281,7 +281,7 @@ static ssize_t hugetlbfs_read_iter(struct kiocb *iocb, struct iov_iter *to)
 				 * touching the 1st raw HWPOISON subpage after
 				 * offset.
 				 */
-				want = adjust_range_hwpoison(&folio->page, offset, nr);
+				want = adjust_range_hwpoison(folio_page(folio, 0), offset, nr);
 				if (want == 0) {
 					folio_put(folio);
 					retval = -EIO;
@@ -396,7 +396,7 @@ static void hugetlb_unmap_file_folio(struct hstate *h,
 {
 	struct rb_root_cached *root = &mapping->i_mmap;
 	struct hugetlb_vma_lock *vma_lock;
-	struct page *page = &folio->page;
+	struct page *page = folio_page(folio, 0);
 	struct vm_area_struct *vma;
 	unsigned long v_start;
 	unsigned long v_end;

@@ -299,7 +299,7 @@ static int mfill_atomic_pte_copy(pmd_t *dst_pmd,
 		goto out_release;
 
 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
-				       &folio->page, true, flags);
+				       folio_page(folio, 0), true, flags);
 	if (ret)
 		goto out_release;
 out:
@@ -331,7 +331,7 @@ static int mfill_atomic_pte_zeroed_folio(pmd_t *dst_pmd,
 	__folio_mark_uptodate(folio);
 
 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
-				       &folio->page, true, 0);
+				       folio_page(folio, 0), true, 0);
 	if (ret)
 		goto out_put;
 
@@ -1046,7 +1046,7 @@ static int move_present_pte(struct mm_struct *mm,
 	}
 	if (folio_test_large(src_folio) ||
 	    folio_maybe_dma_pinned(src_folio) ||
-	    !PageAnonExclusive(&src_folio->page)) {
+	    !PageAnonExclusive(folio_page(src_folio, 0))) {
 		err = -EBUSY;
 		goto out;
 	}
@@ -1062,7 +1062,7 @@ static int move_present_pte(struct mm_struct *mm,
 	folio_move_anon_rmap(src_folio, dst_vma);
 	src_folio->index = linear_page_index(dst_vma, dst_addr);
 
-	orig_dst_pte = mk_pte(&src_folio->page, dst_vma->vm_page_prot);
+	orig_dst_pte = mk_pte(folio_page(src_folio, 0), dst_vma->vm_page_prot);
 	/* Follow mremap() behavior and treat the entry dirty after the move */
 	orig_dst_pte = pte_mkwrite(pte_mkdirty(orig_dst_pte), dst_vma);
 
@@ -1249,7 +1249,7 @@ retry:
 			}
 
 			folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
-			if (!folio || !PageAnonExclusive(&folio->page)) {
+			if (!folio || !PageAnonExclusive(folio_page(folio, 0))) {
 				spin_unlock(src_ptl);
 				err = -EBUSY;
 				goto out;
@@ -1722,7 +1722,7 @@ ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
 				struct folio *folio = pmd_folio(*src_pmd);
 
 				if (!folio || (!is_huge_zero_folio(folio) &&
-					       !PageAnonExclusive(&folio->page))) {
+					       !PageAnonExclusive(folio_page(folio, 0)))) {
 					spin_unlock(ptl);
 					err = -EBUSY;
 					break;

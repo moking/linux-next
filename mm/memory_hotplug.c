@@ -1881,7 +1881,7 @@ put_folio:
 				if (__ratelimit(&migrate_rs)) {
 					pr_warn("migrating pfn %lx failed ret:%d\n",
 						folio_pfn(folio), ret);
-					dump_page(&folio->page,
+					dump_page(folio_page(folio, 0),
 						  "migration failure");
 				}
 			}

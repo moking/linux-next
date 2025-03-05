@@ -110,7 +110,7 @@ void __contpte_try_fold(struct mm_struct *mm, unsigned long addr,
 
 	page = pte_page(pte);
 	folio = page_folio(page);
-	folio_start = addr - (page - &folio->page) * PAGE_SIZE;
+	folio_start = addr - (page - folio_page(folio, 0)) * PAGE_SIZE;
 	folio_end = folio_start + folio_nr_pages(folio) * PAGE_SIZE;
 	cont_start = ALIGN_DOWN(addr, CONT_PTE_SIZE);
 	cont_end = cont_start + CONT_PTE_SIZE;

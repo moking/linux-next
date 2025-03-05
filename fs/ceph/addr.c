@@ -1066,7 +1066,7 @@ get_more_pages:
 		for (i = 0; i < nr_folios && locked_pages < max_pages; i++) {
 			struct folio *folio = fbatch.folios[i];
 
-			page = &folio->page;
+			page = folio_page(folio, 0);
 			doutc(cl, "? %p idx %lu\n", page, page->index);
 			if (locked_pages == 0)
 				lock_page(page);  /* first page */

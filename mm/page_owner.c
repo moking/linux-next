@@ -372,7 +372,7 @@ void __folio_copy_owner(struct folio *newfolio, struct folio *old)
 	if (unlikely(!old_ext))
 		return;
 
-	new_ext = page_ext_get(&newfolio->page);
+	new_ext = page_ext_get(folio_page(newfolio));
 	if (unlikely(!new_ext)) {
 		page_ext_put(old_ext);
 		return;

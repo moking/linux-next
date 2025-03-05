@@ -398,7 +398,7 @@ static inline unsigned long dax_folio_put(struct folio *folio)
 		return 0;
 
 	for (i = 0; i < (1UL << order); i++) {
-		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+		struct dev_pagemap *pgmap = folio_pgmap(folio);
 		struct page *page = folio_page(folio, i);
 		struct folio *new_folio = (struct folio *)page;
 
@@ -431,7 +431,7 @@ static void dax_folio_init(void *entry)
 	WARN_ON_ONCE(folio_order(folio));
 
 	if (order > 0) {
-		prep_compound_page(&folio->page, order);
+		prep_compound_page(folio_page(folio, 0), order);
 		if (order > 1)
 			INIT_LIST_HEAD(&folio->_deferred_list);
 		WARN_ON_ONCE(folio_ref_count(folio));
@@ -484,7 +484,7 @@ static struct page *dax_busy_page(void *entry)
 		return NULL;
 
 	if (folio_ref_count(folio) - folio_mapcount(folio))
-		return &folio->page;
+		return folio_page(folio, 0);
 	else
 		return NULL;
 }
@@ -1396,7 +1396,7 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
 	if (unlikely(!zero_folio))
 		goto fallback;
 
-	pfn = page_to_pfn_t(&zero_folio->page);
+	pfn = page_to_pfn_t(folio_page(new_folio, 0));
 	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn,
 				  DAX_PMD | DAX_ZERO_PAGE);
 
@@ -1416,7 +1416,7 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
 		mm_inc_nr_ptes(vma->vm_mm);
 	}
-	pmd_entry = mk_pmd(&zero_folio->page, vmf->vma->vm_page_prot);
+	pmd_entry = mk_pmd(folio_page(new_folio, 0), vmf->vma->vm_page_prot);
 	pmd_entry = pmd_mkhuge(pmd_entry);
 	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
 	spin_unlock(ptl);
@@ -2148,7 +2148,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *vmf, pfn_t pfn, unsigned int order)
 	folio = pfn_folio(pfn_t_to_pfn(pfn));
 	folio_ref_inc(folio);
 	if (order == 0)
-		ret = vmf_insert_page_mkwrite(vmf, &folio->page, true);
+		ret = vmf_insert_page_mkwrite(vmf, folio_page(folio, 0), true);
 #ifdef CONFIG_FS_DAX_PMD
 	else if (order == PMD_ORDER)
 		ret = vmf_insert_folio_pmd(vmf, folio, FAULT_FLAG_WRITE);

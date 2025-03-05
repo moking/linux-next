@@ -167,7 +167,7 @@ static int orangefs_writepages_callback(struct folio *folio,
 		ow->len = wr->len;
 		ow->uid = wr->uid;
 		ow->gid = wr->gid;
-		ow->pages[ow->npages++] = &folio->page;
+		ow->pages[ow->npages++] = folio_page(folio, 0);
 		ret = 0;
 		goto done;
 	}
@@ -179,7 +179,7 @@ static int orangefs_writepages_callback(struct folio *folio,
 	}
 	if (ow->off + ow->len == wr->pos) {
 		ow->len += wr->len;
-		ow->pages[ow->npages++] = &folio->page;
+		ow->pages[ow->npages++] = folio_page(folio, 0);
 		ret = 0;
 		goto done;
 	}
@@ -189,7 +189,7 @@ done:
 			orangefs_writepages_work(ow, wbc);
 			ow->npages = 0;
 		}
-		ret = orangefs_writepage_locked(&folio->page, wbc);
+		ret = orangefs_writepage_locked(folio_page(folio, 0), wbc);
 		mapping_set_error(folio->mapping, ret);
 		folio_unlock(folio);
 		folio_end_writeback(folio);
@@ -484,7 +484,7 @@ static int orangefs_launder_folio(struct folio *folio)
 	};
 	folio_wait_writeback(folio);
 	if (folio_clear_dirty_for_io(folio)) {
-		r = orangefs_writepage_locked(&folio->page, &wbc);
+		r = orangefs_writepage_locked(folio_page(folio, 0), &wbc);
 		folio_end_writeback(folio);
 	}
 	return r;

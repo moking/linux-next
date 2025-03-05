@@ -1412,7 +1412,7 @@ static int __get_hwpoison_page(struct page *page, unsigned long flags)
 	 * unsupported type of folio in order to reduce the risk of unexpected
 	 * races caused by taking a folio refcount.
 	 */
-	if (!HWPoisonHandlable(&folio->page, flags))
+	if (!HWPoisonHandlable(folio_page(folio, 0), flags))
 		return -EBUSY;
 
 	if (folio_try_get(folio)) {
@@ -1768,7 +1768,7 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
 	if (!cookie)
 		return -EBUSY;
 
-	if (hwpoison_filter(&folio->page)) {
+	if (hwpoison_filter(folio_page(folio, 0))) {
 		rc = -EOPNOTSUPP;
 		goto unlock;
 	}
@@ -1790,7 +1790,7 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
 	 * Use this flag as an indication that the dax page has been
 	 * remapped UC to prevent speculative consumption of poison.
 	 */
-	SetPageHWPoison(&folio->page);
+	SetPageHWPoison(folio_page(folio, 0));
 
 	/*
 	 * Unlike System-RAM there is no possibility to swap in a
@@ -1799,7 +1799,7 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
 	 * SIGBUS (i.e. MF_MUST_KILL)
 	 */
 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-	collect_procs(folio, &folio->page, &to_kill, true);
+	collect_procs(folio, folio_page(folio, 0), &to_kill, true);
 
 	unmap_and_kill(&to_kill, pfn, folio->mapping, folio->index, flags);
 unlock:

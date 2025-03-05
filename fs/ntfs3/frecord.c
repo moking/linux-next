@@ -2123,7 +2123,7 @@ int ni_readpage_cmpr(struct ntfs_inode *ni, struct folio *folio)
 		goto out;
 	}
 
-	pages[idx] = &folio->page;
+	pages[idx] = folio_page(folio, 0);
 	index = frame_vbo >> PAGE_SHIFT;
 	gfp_mask = mapping_gfp_mask(mapping);
 

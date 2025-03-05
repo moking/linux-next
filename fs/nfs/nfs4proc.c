@@ -5160,7 +5160,7 @@ static int _nfs4_proc_symlink(struct inode *dir, struct dentry *dentry,
 		struct folio *folio, unsigned int len, struct iattr *sattr,
 		struct nfs4_label *label)
 {
-	struct page *page = &folio->page;
+	struct page *page = folio_page(folio, 0);
 	struct nfs4_createdata *data;
 	int status = -ENAMETOOLONG;
 

@@ -140,7 +140,7 @@ static void ext4_finish_bio(struct bio *bio)
 		} while ((bh = bh->b_this_page) != head);
 		spin_unlock_irqrestore(&head->b_uptodate_lock, flags);
 		if (!under_io) {
-			fscrypt_free_bounce_page(&io_folio->page);
+			fscrypt_free_bounce_page(folio_page(io_folio, 0));
 			folio_end_writeback(folio);
 		}
 	}
@@ -522,7 +522,7 @@ int ext4_bio_write_folio(struct ext4_io_submit *io, struct folio *folio,
 		if (io->io_bio)
 			gfp_flags = GFP_NOWAIT | __GFP_NOWARN;
 	retry_encrypt:
-		bounce_page = fscrypt_encrypt_pagecache_blocks(&folio->page,
+		bounce_page = fscrypt_encrypt_pagecache_blocks(folio_page(folio, 0),
 					enc_bytes, 0, gfp_flags);
 		if (IS_ERR(bounce_page)) {
 			ret = PTR_ERR(bounce_page);

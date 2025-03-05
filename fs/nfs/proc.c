@@ -399,7 +399,7 @@ static int
 nfs_proc_symlink(struct inode *dir, struct dentry *dentry, struct folio *folio,
 		 unsigned int len, struct iattr *sattr)
 {
-	struct page *page = &folio->page;
+	struct page *page = folio_page(folio, 0);
 	struct nfs_fh *fh;
 	struct nfs_fattr *fattr;
 	struct nfs_symlinkargs	arg = {

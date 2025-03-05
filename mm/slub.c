@@ -2666,7 +2666,7 @@ static void __free_slab(struct kmem_cache *s, struct slab *slab)
 	__folio_clear_slab(folio);
 	mm_account_reclaimed_pages(pages);
 	unaccount_slab(slab, order, s);
-	free_frozen_pages(&folio->page, order);
+	free_frozen_pages(folio_page(folio, 0), order);
 }
 
 static void rcu_free_slab(struct rcu_head *h)

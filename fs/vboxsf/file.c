@@ -313,10 +313,10 @@ static int vboxsf_write_end(struct file *file, struct address_space *mapping,
 	if (!folio_test_uptodate(folio) && copied < len)
 		folio_zero_range(folio, from + copied, len - copied);
 
-	buf = kmap(&folio->page);
+	buf = kmap(folio_page(folio, 0));
 	err = vboxsf_write(sf_handle->root, sf_handle->handle,
 			   pos, &nwritten, buf + from);
-	kunmap(&folio->page);
+	kunmap(folio_page(folio, 0));
 
 	if (err) {
 		nwritten = 0;

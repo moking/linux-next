@@ -142,11 +142,11 @@ static void f2fs_finish_read_bio(struct bio *bio, bool in_task)
 	bio_for_each_folio_all(fi, bio) {
 		struct folio *folio = fi.folio;
 
-		if (f2fs_is_compressed_page(&folio->page)) {
+		if (f2fs_is_compressed_page(folio_page(folio, 0))) {
 			if (ctx && !ctx->decompression_attempted)
-				f2fs_end_read_compressed_page(&folio->page, true, 0,
+				f2fs_end_read_compressed_page(folio_page(folio, 0), true, 0,
 							in_task);
-			f2fs_put_page_dic(&folio->page, in_task);
+			f2fs_put_page_dic(folio_page(folio, 0), in_task);
 			continue;
 		}
 
@@ -3141,7 +3141,7 @@ continue_unlock:
 			if (folio_test_writeback(folio)) {
 				if (wbc->sync_mode == WB_SYNC_NONE)
 					goto continue_unlock;
-				f2fs_wait_on_page_writeback(&folio->page, DATA, true, true);
+				f2fs_wait_on_page_writeback(folio_page(folio, 0), DATA, true, true);
 			}
 
 			if (!folio_clear_dirty_for_io(folio))
@@ -3640,7 +3640,7 @@ repeat:
 		}
 	}
 
-	f2fs_wait_on_page_writeback(&folio->page, DATA, false, true);
+	f2fs_wait_on_page_writeback(folio_page(folio, 0), DATA, false, true);
 
 	if (len == folio_size(folio) || folio_test_uptodate(folio))
 		return 0;
@@ -3762,7 +3762,7 @@ void f2fs_invalidate_folio(struct folio *folio, size_t offset, size_t length)
 			f2fs_remove_dirty_inode(inode);
 		}
 	}
-	clear_page_private_all(&folio->page);
+	clear_page_private_all(folio_page(folio, 0));
 }
 
 bool f2fs_release_folio(struct folio *folio, gfp_t wait)
@@ -3771,7 +3771,7 @@ bool f2fs_release_folio(struct folio *folio, gfp_t wait)
 	if (folio_test_dirty(folio))
 		return false;
 
-	clear_page_private_all(&folio->page);
+	clear_page_private_all(folio_page(folio, 0));
 	return true;
 }
 

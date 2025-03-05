@@ -107,7 +107,7 @@ static void __dump_folio(struct folio *folio, struct page *page,
 	 */
 	pr_warn("%sflags: %pGp%s\n", type, &folio->flags,
 		is_migrate_cma_folio(folio, pfn) ? " CMA" : "");
-	if (page_has_type(&folio->page))
+	if (page_has_type(folio_page(folio, 0)))
 		pr_warn("page_type: %x(%s)\n", folio->page.page_type >> 24,
 				page_type_name(folio->page.page_type));
 

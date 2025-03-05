@@ -1203,7 +1203,7 @@ static void map_anon_folio_pmd(struct folio *folio, pmd_t *pmd,
 {
 	pmd_t entry;
 
-	entry = mk_huge_pmd(&folio->page, vma->vm_page_prot);
+	entry = mk_huge_pmd(folio_page(folio, 0), vma->vm_page_prot);
 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
 	folio_add_new_anon_rmap(folio, vma, haddr, RMAP_EXCLUSIVE);
 	folio_add_lru_vma(folio, vma);
@@ -1311,7 +1311,7 @@ static void set_huge_zero_folio(pgtable_t pgtable, struct mm_struct *mm,
 	pmd_t entry;
 	if (!pmd_none(*pmd))
 		return;
-	entry = mk_pmd(&zero_folio->page, vma->vm_page_prot);
+	entry = mk_pmd(folio_page(zero_folio, 0), vma->vm_page_prot);
 	entry = pmd_mkhuge(entry);
 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
 	set_pmd_at(mm, haddr, pmd, entry);
@@ -1495,7 +1495,7 @@ vm_fault_t vmf_insert_folio_pmd(struct vm_fault *vmf, struct folio *folio,
 	ptl = pmd_lock(mm, vmf->pmd);
 	if (pmd_none(*vmf->pmd)) {
 		folio_get(folio);
-		folio_add_file_rmap_pmd(folio, &folio->page, vma);
+		folio_add_file_rmap_pmd(folio, folio_page(folio, 0), vma);
 		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PMD_NR);
 	}
 	error = insert_pfn_pmd(vma, addr, vmf->pmd,
@@ -1623,7 +1623,7 @@ vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio,
 	 */
 	if (pud_none(*vmf->pud)) {
 		folio_get(folio);
-		folio_add_file_rmap_pud(folio, &folio->page, vma);
+		folio_add_file_rmap_pud(folio, folio_page(folio, 0), vma);
 		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PUD_NR);
 	}
 	insert_pfn_pud(vma, addr, vmf->pud, pfn_to_pfn_t(folio_pfn(folio)),
@@ -2266,7 +2266,7 @@ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 
 		spin_unlock(ptl);
 		if (flush_needed)
-			tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
+			tlb_remove_page_size(tlb, folio_page(folio, 0), HPAGE_PMD_SIZE);
 	}
 	return 1;
 }
@@ -2633,7 +2633,7 @@ int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pm
 	}
 	if (src_folio) {
 		if (folio_maybe_dma_pinned(src_folio) ||
-		    !PageAnonExclusive(&src_folio->page)) {
+		    !PageAnonExclusive(folio_page(src_folio, 0))) {
 			err = -EBUSY;
 			goto unlock_ptls;
 		}
@@ -2655,7 +2655,7 @@ int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pm
 		folio_move_anon_rmap(src_folio, dst_vma);
 		src_folio->index = linear_page_index(dst_vma, dst_addr);
 
-		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
+		_dst_pmd = mk_huge_pmd(folio_page(src_folio, 0), dst_vma->vm_page_prot);
 		/* Follow mremap() behavior and treat the entry dirty after the move */
 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
 	} else {
@@ -3318,7 +3318,7 @@ static void __split_folio_to_order(struct folio *folio, int new_order)
 	 * the flags from the original folio.
 	 */
 	for (index = new_nr_pages; index < nr_pages; index += new_nr_pages) {
-		struct page *head = &folio->page;
+		struct page *head = folio_page(folio, 0);
 		struct page *new_head = head + index;
 
 		/*
@@ -3406,7 +3406,7 @@ static void __split_folio_to_order(struct folio *folio, int new_order)
 	}
 
 	if (!new_order)
-		ClearPageCompound(&folio->page);
+		ClearPageCompound(folio_page(folio, 0));
 }
 
 /*
@@ -3530,8 +3530,8 @@ static int __split_unmapped_folio(struct folio *folio, int new_order,
 		}
 
 		/* complete memcg works before add pages to LRU */
-		split_page_memcg(&folio->page, old_order, split_order);
-		split_page_owner(&folio->page, old_order, split_order);
+		split_page_memcg(folio_page(folio, 0), old_order, split_order);
+		split_page_owner(folio_page(folio, 0), old_order, split_order);
 		pgalloc_tag_split(folio, old_order, split_order);
 
 		__split_folio_to_order(folio, split_order);
@@ -3636,7 +3636,7 @@ after_split:
 		 * requires taking the lru_lock so we do the put_page
 		 * of the tail pages after the split is complete.
 		 */
-		free_page_and_swap_cache(&new_folio->page);
+		free_page_and_swap_cache(folio_page(new_folio, 0));
 	}
 	return ret;
 }
@@ -3962,7 +3962,7 @@ int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
 {
 	struct folio *folio = page_folio(page);
 
-	return __folio_split(folio, new_order, &folio->page, page, list, true);
+	return __folio_split(folio, new_order, folio_page(folio, 0), page, list, true);
 }
 
 /*
@@ -3990,7 +3990,7 @@ int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
 int folio_split(struct folio *folio, unsigned int new_order,
 		struct page *split_at, struct list_head *list)
 {
-	return __folio_split(folio, new_order, split_at, &folio->page, list,
+	return __folio_split(folio, new_order, split_at, folio_page(folio, 0), list,
 			false);
 }
 
@@ -4015,7 +4015,7 @@ int split_folio_to_list(struct folio *folio, struct list_head *list)
 	if (ret < 0)
 		return ret;
 
-	return split_huge_page_to_list_to_order(&folio->page, list, ret);
+	return split_huge_page_to_list_to_order(folio_page(folio, 0), list, ret);
 }
 
 /*

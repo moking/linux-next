@@ -472,7 +472,7 @@ static void gfs2_jhead_process_page(struct gfs2_jdesc *jd, unsigned long index,
 		*done = true;
 
 	if (!*done)
-		*done = gfs2_jhead_pg_srch(jd, head, &folio->page);
+		*done = gfs2_jhead_pg_srch(jd, head, folio_page(folio, 0));
 
 	/* filemap_get_folio() and the earlier grab_cache_page() */
 	folio_put_refs(folio, 2);

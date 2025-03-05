@@ -545,7 +545,7 @@ static int
 nfs3_proc_symlink(struct inode *dir, struct dentry *dentry, struct folio *folio,
 		  unsigned int len, struct iattr *sattr)
 {
-	struct page *page = &folio->page;
+	struct page *page = folio_page(folio, 0);
 	struct nfs3_createdata *data;
 	struct dentry *d_alias;
 	int status = -ENOMEM;

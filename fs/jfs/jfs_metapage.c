@@ -101,7 +101,7 @@ static inline int insert_metapage(struct folio *folio, struct metapage *mp)
 		if (!a)
 			return -ENOMEM;
 		folio_attach_private(folio, a);
-		kmap(&folio->page);
+		kmap(folio_page(folio, 0));
 	}
 
 	if (mp) {
@@ -128,7 +128,7 @@ static inline void remove_metapage(struct folio *folio, struct metapage *mp)
 	if (--a->mp_count == 0) {
 		kfree(a);
 		folio_detach_private(folio);
-		kunmap(&folio->page);
+		kunmap(folio_page(folio, 0));
 	}
 }
 
@@ -161,7 +161,7 @@ static inline int insert_metapage(struct folio *folio, struct metapage *mp)
 {
 	if (mp) {
 		folio_attach_private(folio, mp);
-		kmap(&folio->page);
+		kmap(folio_page(folio, 0));
 	}
 	return 0;
 }
@@ -169,7 +169,7 @@ static inline int insert_metapage(struct folio *folio, struct metapage *mp)
 static inline void remove_metapage(struct folio *folio, struct metapage *mp)
 {
 	folio_detach_private(folio);
-	kunmap(&folio->page);
+	kunmap(folio_page(folio, 0));
 }
 
 #define inc_io(folio) do {} while(0)

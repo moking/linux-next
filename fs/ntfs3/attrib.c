@@ -1457,7 +1457,7 @@ int attr_wof_frame_info(struct ntfs_inode *ni, struct ATTRIB *attr,
 		pgoff_t index = vbo[i] >> PAGE_SHIFT;
 
 		if (index != folio->index) {
-			struct page *page = &folio->page;
+			struct page *page = folio_page(folio, 0);
 			u64 from = vbo[i] & ~(u64)(PAGE_SIZE - 1);
 			u64 to = min(from + PAGE_SIZE, wof_size);
 

@@ -977,7 +977,7 @@ static int ntfs_get_frame_pages(struct address_space *mapping, pgoff_t index,
 		if (!folio_test_uptodate(folio))
 			*frame_uptodate = false;
 
-		pages[npages] = &folio->page;
+		pages[npages] = folio_page(folio, 0);
 	}
 
 	return 0;

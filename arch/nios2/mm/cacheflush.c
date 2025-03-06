@@ -139,6 +139,16 @@ void flush_cache_range(struct vm_area_struct *vma, unsigned long start,
 		__flush_icache(start, end);
 }
 
+static void flush_icache_folio(struct vm_area_struct *vma, struct folio *folio)
+{
+	unsigned int nr = folio_nr_pages(folio);
+	unsigned long start = (unsigned long) folio_address(folio);
+	unsigned long end = start + nr * PAGE_SIZE;
+
+	__flush_dcache(start, end);
+	__flush_icache(start, end);
+}
+
 void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
 		unsigned int nr)
 {
@@ -234,8 +244,7 @@ void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
 	if (mapping) {
 		flush_aliases(mapping, folio);
 		if (vma->vm_flags & VM_EXEC)
-			flush_icache_pages(vma, &folio->page,
-					folio_nr_pages(folio));
+			flush_icache_folio(vma, folio);
 	}
 }
 

@@ -3,16 +3,16 @@
 #define __LINUX_PAGEISOLATION_H
 
 #ifdef CONFIG_MEMORY_ISOLATION
-static inline bool is_migrate_isolate_page(struct page *page)
+static inline bool folio_is_migrate_isolated(struct folio *folio)
 {
-	return get_pageblock_migratetype(page) == MIGRATE_ISOLATE;
+	return folio_migratetype(folio) == MIGRATE_ISOLATE;
 }
 static inline bool is_migrate_isolate(int migratetype)
 {
 	return migratetype == MIGRATE_ISOLATE;
 }
 #else
-static inline bool is_migrate_isolate_page(struct page *page)
+static inline bool folio_is_migrate_isolated(struct folio *folio)
 {
 	return false;
 }

@@ -1305,7 +1305,7 @@ static struct folio *dequeue_hugetlb_folio_node_exact(struct hstate *h,
 		if (folio_test_hwpoison(folio))
 			continue;
 
-		if (is_migrate_isolate_page(&folio->page))
+		if (folio_is_migrate_isolated(folio))
 			continue;
 
 		list_move(&folio->lru, &h->hugepage_activelist);

@@ -2696,6 +2696,11 @@ void free_frozen_pages(struct page *page, unsigned int order)
 	__free_frozen_pages(page, order, FPI_NONE);
 }
 
+void free_frozen_folio(struct folio *folio)
+{
+	__free_frozen_pages(folio_page(folio, 0), folio_order(folio), FPI_NONE);
+}
+
 /*
  * Free a batch of folios
  */
